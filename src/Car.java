@@ -1,4 +1,8 @@
+import java.util.concurrent.CyclicBarrier;
+
 public class Car implements Runnable {
+    private static CyclicBarrier cb = new CyclicBarrier(MainClass.getCarCount());
+    private static boolean checkWin = false;
     private static int CARS_COUNT;
     static {
         CARS_COUNT = 0;
@@ -22,13 +26,20 @@ public class Car implements Runnable {
     public void run() {
         try {
             System.out.println(this.name + " готовится");
-            Thread.sleep(500 + (int)(Math.random() * 800));
+            Thread.sleep(500 + (int) (Math.random() * 800));
             System.out.println(this.name + " готов");
+            cb.await();
+            MainClass.getReadyCountDownLatch().countDown();
         } catch (Exception e) {
             e.printStackTrace();
         }
         for (int i = 0; i < race.getStages().size(); i++) {
             race.getStages().get(i).go(this);
+        }
+        MainClass.getFinishedCountDownLatch().countDown();
+        if (!checkWin) {
+            checkWin = true;
+            System.out.println(name + " WIN");
         }
     }
 }
